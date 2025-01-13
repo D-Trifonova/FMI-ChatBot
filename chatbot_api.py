@@ -45,7 +45,7 @@ embedding_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 document_embeddings = embedding_model.encode(documents, convert_to_tensor=True)
 
 # Load the GPT-2 model and tokenizer
-model_path = "../FMI-ChatBot-backup/runs/Jan12_16-39-00_7dbf5bb81ad5"
+model_path = "../FMI-ChatBot/runs/Jan12_16-39-00_7dbf5bb81ad5"
 tokenizer = GPT2Tokenizer.from_pretrained(model_path)
 model = GPT2LMHeadModel.from_pretrained(model_path)
 

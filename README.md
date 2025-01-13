@@ -1,7 +1,55 @@
+# Quick Start Guide
+
+This guide explains how to set up and run the project in a development environment.
+
+## Backend Setup (Python)
+
+1. **Install Dependencies**
+   - Create and activate a virtual environment (optional):
+     ```bash
+     python -m venv venv
+     source venv/bin/activate       # Linux/Mac
+     venv\Scripts\activate          # Windows
+     ```
+   - Install required packages:
+     ```bash
+     pip install -r installed_packages.txt
+     ```
+
+2. **Run the Backend**
+   - Start the FastAPI server:
+     ```bash
+     uvicorn chatbot_api:app --reload
+     ```
+   - The backend will run on `http://127.0.0.1:8000`.
+
+## Frontend Setup (Vue.js)
+
+1. **Install Node.js**  
+   Download and install the latest LTS version of Node.js from [nodejs.org](https://nodejs.org/).
+
+2. **Set Up Frontend**
+   - Navigate to the `chatbot-ui` folder:
+     ```bash
+     cd ./chatbot-ui
+     ```
+   - Install dependencies:
+     ```bash
+     npm install
+     ```
+   - Start the development server:
+     ```bash
+     npm run dev
+     ```
+
+3. **Access the Application**
+   - Open your browser and navigate to `http://localhost:5173`.
+  
 ---
-base_model: gpt2
-library_name: peft
----
+     
+| Base Model   | GPT2            |
+|--------------|-----------------|
+| Library Name | PEFT            |
 
 # Model Card for Model ID
 

@@ -6,6 +6,7 @@ from sentence_transformers import SentenceTransformer, util
 import json
 import faiss
 import numpy as np
+from fastapi.middleware.cors import CORSMiddleware
 
 # Connect to the database and load embeddings
 conn = sqlite3.connect("DB/documents.db")
@@ -20,6 +21,15 @@ index = faiss.IndexFlatL2(embedding_size)
 index.add(embeddings)
 
 app = FastAPI()
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Replace with a specific domain in production
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+)
 
 # Load the scraped dataset
 with open("fmi_full_site.json", "r", encoding="utf-8") as f:

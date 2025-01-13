@@ -1,6 +1,11 @@
 <template>
     <div class="chatbot-container">
         <div class="chat-window">
+            <!-- Loading Spinner -->
+            <div v-if="isLoading" class="loading-spinner">
+                Loading...
+            </div>
+
             <div v-for="(message, index) in messages" :key="index" :class="['message-container', message.sender]">
                 <img :src="message.sender === 'bot' ? botIcon : userIcon" alt="User Icon" class="user-icon" />
                 <div class="message">
@@ -83,6 +88,16 @@ export default defineComponent({
     padding: 16px;
     overflow-y: auto;
     background: #f9f9f9;
+}
+
+.loading-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 16px;
+    font-weight: bold;
+    color: #555;
 }
 
 .message-container {

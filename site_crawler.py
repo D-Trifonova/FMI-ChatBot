@@ -107,7 +107,7 @@ def main():
         print("\nCrawling interrupted by user. Saving progress...")
 
     # Save the dataset to a JSON file
-    output_file = 'fmi_full_site.json'
+    output_file = 'runs/Jan12_16-39-00_7dbf5bb81ad5/fmi_full_site.json'
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(dataset, f, ensure_ascii=False, indent=4)
 

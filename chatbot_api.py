@@ -4,7 +4,20 @@ from pydantic import BaseModel
 from transformers import GPT2LMHeadModel, GPT2Tokenizer, pipeline
 from sentence_transformers import SentenceTransformer, util
 import json
+import faiss
+import numpy as np
 
+# Connect to the database and load embeddings
+conn = sqlite3.connect("DB/documents.db")
+cursor = conn.cursor()
+cursor.execute("SELECT embedding FROM documents")
+rows = cursor.fetchall()
+embeddings = np.array([np.frombuffer(row[0], dtype=np.float32) for row in rows])
+
+# Build the Faiss index
+embedding_size = embeddings.shape[1]
+index = faiss.IndexFlatL2(embedding_size)
+index.add(embeddings)
 
 app = FastAPI()
 
@@ -86,32 +99,60 @@ async def chat(request: ChatRequest):
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
     try:
-        # Step 1: Retrieve the relevant context from the SQL database
-        relevant_context = get_relevant_context_from_sql(request.question)
-        title = relevant_context["title"]
-        content = relevant_context["content"]
-        url = relevant_context["url"]
+        # Step 1: Encode the question
+        query_embedding = embedding_model.encode(request.question, convert_to_tensor=True).cpu().numpy()
+        query_embedding = query_embedding.reshape(1, -1)
+        print(f"Query Embedding Shape After Reshape: {query_embedding.shape}")
 
-        # Step 2: Use GPT-2 to generate an answer based on the context
-        prompt = f"Question: {request.question}\nContext: {content}\nAnswer:"
-        gpt2_result = gpt2_pipeline(prompt, max_length=200, num_return_sequences=1, temperature=0.7)
+        # Step 2: Perform Faiss search
+        D, I = index.search(query_embedding, k=1)
+        print(f"Faiss Search Results - Distances: {D}, Indices: {I}")
 
-        # Extract the generated GPT-2 answer
-        gpt2_answer = gpt2_result[0]["generated_text"].split("Answer:")[-1].strip()
+        # Validate Faiss result
+        if I[0][0] == -1:
+            raise HTTPException(status_code=404, detail="No relevant documents found in Faiss index.")
 
-        # Step 3: Shorten the context for the response
-        context_excerpt = content[:200] + "..." if len(content) > 200 else content
+        best_match_idx = int(I[0][0])  # Ensure the index is an integer
+        print(f"Best match index: {best_match_idx}")
 
-        # Return the relevant data along with the GPT-2 answer
+        # Step 3: Query the SQL database
+        cursor.execute("SELECT COUNT(*) FROM documents")
+        row_count = cursor.fetchone()[0]
+        print(f"Total rows in the table: {row_count}")
+
+        # Ensure the index is within the range of rows
+        if best_match_idx >= row_count:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Index {best_match_idx} out of range for table with {row_count} rows."
+            )
+
+        # Fetch the matching document
+        cursor.execute("SELECT title, content, url FROM documents LIMIT 1 OFFSET ?", (best_match_idx,))
+        result = cursor.fetchone()
+        print(f"SQL Query Result: {result}")
+
+        # Ensure the result contains all expected fields
+        if not result or len(result) != 3:
+            raise HTTPException(status_code=404, detail="No valid document found in the database.")
+
+        title, content, url = result
+
+        # Step 4: Generate a response using GPT-2
+        gpt2_response = gpt2_pipeline(request.question, max_length=100, num_return_sequences=1)
+
+        # Step 5: Return the response
         return {
-            "answer": gpt2_answer,
+            "answer": gpt2_response[0]['generated_text'] if gpt2_response else "No answer generated.",
             "title": title,
-            "context_excerpt": context_excerpt,
+            "context_excerpt": content[:200] + "...",
             "url": url,
         }
 
+    except ValueError as ve:
+        raise HTTPException(status_code=500, detail=f"ValueError during processing: {ve}")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error: {e}")
+        raise HTTPException(status_code=500, detail=f"Error during processing: {e}")
 
 
 @app.get("/health")

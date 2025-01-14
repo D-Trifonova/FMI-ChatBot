@@ -12,7 +12,11 @@ export const sendMessageToApi = async (userMessage: string): Promise<string> => 
             const { title, context_excerpt, url } = response.data;
 
             // Construct a bot response using the API output
-            return `Here’s what I found:\n\nTitle: ${title}\nContext: ${context_excerpt}\nURL: ${url}`;
+            return `
+                <b>Title:</b> ${title}<br>
+                <b>Context:</b> ${context_excerpt}<br>
+                <b>Resource:</b> <a href="${url}" target="_blank">View Resource</a>
+            `;
         } else {
             throw new Error("Unexpected response from the server.");
         }

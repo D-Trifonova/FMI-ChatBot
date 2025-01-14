@@ -30,13 +30,17 @@
                         </div>
 
                         <!-- Chat messages -->
-                        <div v-for="(message, index) in messages" :key="index"
-                            :class="['message-container', message.sender]">
-                            <img :src="message.sender === 'bot' ? botIcon : userIcon" alt="User Icon"
-                                class="user-icon" />
-                            <div class="message">
-                                <p>{{ message.text }}</p>
-                            </div>
+                        <div
+                            v-for="(message, index) in messages"
+                            :key="index"
+                            :class="['message-container', message.sender]"
+                        >
+                            <img
+                                :src="message.sender === 'bot' ? botIcon : userIcon"
+                                alt="User Icon"
+                                class="user-icon"
+                            />
+                            <div class="message" v-html="message.text"></div>
                         </div>
                     </div>
                     <!-- Input container -->

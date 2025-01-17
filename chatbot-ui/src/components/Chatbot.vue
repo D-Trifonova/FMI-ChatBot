@@ -166,6 +166,10 @@ body {
     border: 1px solid #555;
 }
 
+.dark-mode .input-container input[data-v-c1cad5e6]::placeholder {
+    color: whitesmoke;
+}
+
 .dark-mode .input-container button {
     background-color: #0a84ff;
     border: none;
